@@ -60,6 +60,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     const adminIdentity = authenticate(request);
+    // The token hash identifies the sole administrator without exposing the
+    // secret, so this limiter is effectively a global cap for admin ingestion.
     const rateLimit = await ingestLimiter.limit(adminIdentity);
     headers = {
       ...rateLimitHeaders(rateLimit),
@@ -152,7 +154,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       return NextResponse.json(stored.data, {
         status: existing.statusCode,
-        headers: { ...headers, "Idempotent-Replayed": "true" },
+        headers,
       });
     }
 
@@ -163,12 +165,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       meta,
     };
 
-    await storeIdempotencyRecord(
-      idempotencyKey,
-      requestHash,
-      201,
-      body,
-    );
+    try {
+      await storeIdempotencyRecord(idempotencyKey, requestHash, 201, body);
+    } catch (cause) {
+      logger.warn({
+        requestId,
+        operation: "store_idempotency",
+        status: "failed",
+        durationMs: Date.now() - startedAt,
+        cause: cause instanceof Error ? cause.name : "UnknownError",
+      });
+    }
 
     logger.info({
       requestId,

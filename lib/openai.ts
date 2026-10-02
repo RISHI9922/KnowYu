@@ -107,6 +107,7 @@ export async function createEmbeddingsBatched(
   const embeddings: Array<ReadonlyArray<number>> = [];
 
   for (let index = 0; index < input.length; index += EMBEDDING_BATCH_SIZE) {
+    signal?.throwIfAborted();
     const batch = input.slice(index, index + EMBEDDING_BATCH_SIZE);
     const batchEmbeddings = await createEmbeddings(batch, signal);
     embeddings.push(...batchEmbeddings);

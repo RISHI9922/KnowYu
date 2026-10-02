@@ -8,6 +8,7 @@ import { documentMatchRowSchema } from "./schemas";
 import type { DocumentMatch } from "./types";
 
 const DATABASE_TIMEOUT_MS = 5_000;
+const BULK_INSERT_TIMEOUT_MS = 30_000;
 
 export interface DocumentChunkInput {
   content: string;
@@ -169,7 +170,7 @@ export async function replaceDocumentChunks(
   const timeout = setTimeout(() => {
     didTimeout = true;
     controller.abort();
-  }, DATABASE_TIMEOUT_MS);
+  }, BULK_INSERT_TIMEOUT_MS);
 
   try {
     const { data, error } = await supabaseService.rpc(
@@ -223,8 +224,8 @@ export async function getIdempotencyRecord(
       .select("request_hash,status_code,response_body,created_at")
       .eq("key", key)
       .gte("created_at", new Date(Date.now() - 86_400_000).toISOString())
-      .maybeSingle()
-      .abortSignal(signal);
+      .abortSignal(signal)
+      .maybeSingle();
     data = result.data;
     error = result.error;
   } catch (cause) {
