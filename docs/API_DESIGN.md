@@ -1,4 +1,4 @@
-# rag-bot API Design Rules
+# KnowYu API Design Rules
 
 ## Principles
 
