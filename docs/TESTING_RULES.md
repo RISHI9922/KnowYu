@@ -1,4 +1,4 @@
-# rag-bot Testing Standards
+# KnowYu Testing Standards
 
 ## Strategy
 

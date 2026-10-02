@@ -1,8 +1,8 @@
-# rag-bot Security Rules
+# KnowYu Security Rules
 
 ## Security posture
 
-rag-bot treats user questions and corpus text as untrusted input. Secrets, retrieval, prompting, and provider calls remain server-side. Least privilege, bounded inputs, auditable requests, and grounded output are mandatory.
+knowyu treats user questions and corpus text as untrusted input. Secrets, retrieval, prompting, and provider calls remain server-side. Least privilege, bounded inputs, auditable requests, and grounded output are mandatory.
 
 ## Secrets management
 
@@ -23,7 +23,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 OPENAI_API_KEY=<openai-api-key>
 INGEST_ADMIN_TOKEN=<random-32-byte-token>
-ALLOWED_ORIGINS=https://rag-bot.example.com
+UPSTASH_REDIS_URL=https://<database-name>.upstash.io
+UPSTASH_REDIS_TOKEN=<upstash-redis-token>
+ALLOWED_ORIGINS=https://knowyu.example.com
 ```
 
 `INGEST_ADMIN_TOKEN` is the bearer token required by `POST /api/v1/ingest` (see API_DESIGN.md).
@@ -104,4 +106,3 @@ Only approved documents may enter `/corpus`. Before ingestion, owners must confi
 - Rate limits, payload limits, authorization failure, and prompt-injection cases are tested.
 - Logs and error responses contain no credentials or corpus content.
 - Credential owners and rotation dates are recorded outside the repository.
-

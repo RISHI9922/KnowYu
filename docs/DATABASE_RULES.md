@@ -118,6 +118,38 @@ as $$
 $$;
 ```
 
+Source replacement uses a single RPC so deleting old chunks and inserting new chunks commit or roll back together:
+
+```sql
+create or replace function public.replace_document_chunks(
+  source_name text,
+  document_chunks jsonb
+)
+returns integer
+language plpgsql
+set search_path = public
+as $$
+declare
+  inserted_count integer;
+begin
+  delete from public.documents where source = source_name;
+
+  insert into public.documents (content, embedding, source, page, chunk_index)
+  select
+    chunk->>'content',
+    (chunk->'embedding')::text::vector(1536),
+    source_name,
+    case when chunk->'page' = 'null'::jsonb
+      then null else (chunk->>'page')::integer end,
+    (chunk->>'chunk_index')::integer
+  from jsonb_array_elements(document_chunks) as chunk;
+
+  get diagnostics inserted_count = row_count;
+  return inserted_count;
+end;
+$$;
+```
+
 ## Row Level Security
 
 Enable RLS on every table, including tables thought to be server-only. The anon role may select active document metadata only when product requirements require direct browser reads; it receives no write policy. Prefer server RPC so the anon role needs no direct table access. `chat_messages` has no anonymous policy in v1. The service-role server client bypasses RLS and must never reach the browser.

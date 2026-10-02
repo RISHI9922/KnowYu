@@ -1,8 +1,8 @@
-# rag-bot Product Requirements Document
+# KnowYu Product Requirements Document
 
 ## Product summary
 
-rag-bot is a question-answering assistant for a controlled corpus of PDF and Markdown documents. It retrieves relevant passages, answers only from those passages, and cites the source filename and page where available. When the corpus does not support an answer, it says so instead of guessing.
+knowyu is a question-answering assistant for a controlled corpus of PDF and Markdown documents. It retrieves relevant passages, answers only from those passages, and cites the source filename and page where available. When the corpus does not support an answer, it says so instead of guessing.
 
 ## Problem statement
 

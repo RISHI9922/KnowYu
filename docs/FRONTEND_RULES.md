@@ -1,4 +1,4 @@
-# rag-bot Frontend Standards
+# KnowYu Frontend Standards
 
 ## Structure
 

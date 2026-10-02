@@ -1,4 +1,4 @@
-# rag-bot Premium Minimal UI/UX Rules
+# KnowYu Premium Minimal UI/UX Rules
 
 ## Design philosophy
 

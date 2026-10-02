@@ -1,8 +1,8 @@
-# rag-bot Technical Requirements Document
+# KnowYu Technical Requirements Document
 
 ## Overview
 
-rag-bot is a Next.js application that ingests a controlled document corpus, stores chunk embeddings in Supabase Postgres with pgvector, retrieves relevant context, and generates cited answers through OpenAI.
+knowyu is a Next.js application that ingests a controlled document corpus, stores chunk embeddings in Supabase Postgres with pgvector, retrieves relevant context, and generates cited answers through OpenAI.
 
 ## Technology stack
 

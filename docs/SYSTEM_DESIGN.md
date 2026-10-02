@@ -1,4 +1,4 @@
-# rag-bot System Design
+# KnowYu System Design
 
 ## Architecture
 

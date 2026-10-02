@@ -40,7 +40,21 @@ export const llmAnswerSchema = z.object({
   }).strict()).max(5),
 }).strict();
 
+export const ingestSuccessResponseSchema = z.object({
+  data: z.object({
+    documents: z.number().int().nonnegative(),
+    chunks: z.number().int().nonnegative(),
+    rejected: z.number().int().nonnegative(),
+  }).strict(),
+  error: z.null(),
+  meta: z.object({
+    requestId: z.string().min(1),
+    timestamp: z.string().datetime(),
+  }).strict(),
+}).strict();
+
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
 export type IngestRequest = z.infer<typeof ingestRequestSchema>;
 export type DocumentMatchRow = z.infer<typeof documentMatchRowSchema>;
 export type LlmAnswer = z.infer<typeof llmAnswerSchema>;
+export type IngestSuccessResponse = z.infer<typeof ingestSuccessResponseSchema>;

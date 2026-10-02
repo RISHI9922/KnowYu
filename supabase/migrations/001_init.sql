@@ -91,6 +91,48 @@ as $$
   limit least(greatest(match_count, 1), 20);
 $$;
 
+create or replace function public.replace_document_chunks(
+  source_name text,
+  document_chunks jsonb
+)
+returns integer
+language plpgsql
+set search_path = public
+as $$
+declare
+  inserted_count integer;
+begin
+  delete from public.documents
+  where source = source_name;
+
+  insert into public.documents (
+    content,
+    embedding,
+    source,
+    page,
+    chunk_index
+  )
+  select
+    chunk->>'content',
+    (chunk->'embedding')::text::vector(1536),
+    source_name,
+    case
+      when chunk->'page' = 'null'::jsonb then null
+      else (chunk->>'page')::integer
+    end,
+    (chunk->>'chunk_index')::integer
+  from jsonb_array_elements(document_chunks) as chunk;
+
+  get diagnostics inserted_count = row_count;
+  return inserted_count;
+end;
+$$;
+
+revoke all on function public.replace_document_chunks(text, jsonb)
+  from public, anon;
+grant execute on function public.replace_document_chunks(text, jsonb)
+  to service_role;
+
 alter table public.documents enable row level security;
 alter table public.chat_messages enable row level security;
 alter table public.idempotency_keys enable row level security;

@@ -13,6 +13,8 @@ const envSchema = z.object({
   supabaseServiceRoleKey: z.string().min(1),
   openAiApiKey: z.string().min(1),
   ingestAdminToken: z.string().min(43),
+  upstashRedisUrl: urlSchema,
+  upstashRedisToken: z.string().min(1),
   allowedOrigins: z.array(urlSchema).min(1),
 }).strict();
 
@@ -27,6 +29,8 @@ export const env = envSchema.parse({
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   openAiApiKey: process.env.OPENAI_API_KEY,
   ingestAdminToken: process.env.INGEST_ADMIN_TOKEN,
+  upstashRedisUrl: process.env.UPSTASH_REDIS_URL,
+  upstashRedisToken: process.env.UPSTASH_REDIS_TOKEN,
   allowedOrigins,
 });
 
