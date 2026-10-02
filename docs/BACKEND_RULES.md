@@ -1,4 +1,4 @@
-# rag-bot Backend Standards
+# KnowYu Backend Standards
 
 ## Structure
 
