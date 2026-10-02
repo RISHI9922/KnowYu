@@ -1,0 +1,21 @@
+# Dependencies and builds
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Platform and editor files
+.vercel/
+.DS_Store
+*.log
+.idea/
+.vscode/
