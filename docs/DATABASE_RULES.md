@@ -1,4 +1,4 @@
-# rag-bot Database Standards
+# KnowYu Database Standards
 
 ## Naming conventions
 
