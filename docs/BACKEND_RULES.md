@@ -86,7 +86,8 @@ Validate environment variables at startup. Validate database RPC results and pro
 
 ## Chunking rules
 
-- Target 300 tokens with 50-token overlap, measured by the embedding-model tokenizer.
+- Target 300 tokens, measured by the embedding-model tokenizer.
+- Overlap is one sentence. Typical size 20-60 tokens. Exact token count is not enforced because sentences are atomic units.
 - Normalize line endings and repeated whitespace while preserving paragraphs.
 - Split first at paragraph boundaries, then sentence boundaries. Never split mid-sentence unless one sentence exceeds the hard maximum.
 - Preserve source, page, and deterministic `chunk_index` metadata.

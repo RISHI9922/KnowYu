@@ -52,6 +52,14 @@ create table public.chat_messages (
   constraint citations_is_array check (jsonb_typeof(citations) = 'array')
 );
 
+create table public.idempotency_keys (
+  key text primary key,
+  request_hash text not null,
+  status_code integer not null,
+  response_body jsonb not null,
+  created_at timestamptz not null default now()
+);
+
 create index idx_documents_embedding_hnsw
   on public.documents using hnsw (embedding vector_cosine_ops)
   where deleted_at is null;
@@ -61,6 +69,8 @@ create index idx_documents_source
 create index idx_chat_messages_conversation_created
   on public.chat_messages (conversation_id, created_at)
   where deleted_at is null;
+create index idx_idempotency_keys_created_at
+  on public.idempotency_keys (created_at);
 
 create trigger trg_documents_updated_at
   before update on public.documents
@@ -115,6 +125,7 @@ Enable RLS on every table, including tables thought to be server-only. The anon 
 ```sql
 alter table public.documents enable row level security;
 alter table public.chat_messages enable row level security;
+alter table public.idempotency_keys enable row level security;
 
 create policy documents_anon_read_active
   on public.documents for select
@@ -123,7 +134,10 @@ create policy documents_anon_read_active
 
 revoke insert, update, delete on public.documents from anon;
 revoke all on public.chat_messages from anon;
+revoke all on public.idempotency_keys from anon;
 ```
+
+A scheduled job prunes idempotency records older than 24 hours.
 
 ## Index rules
 

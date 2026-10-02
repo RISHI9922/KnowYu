@@ -9,7 +9,7 @@ The system separates ingestion from question answering. Ingestion converts appro
  /corpus PDFs + Markdown
           |
           v
-  extract and normalize --> chunk (300 tokens, 50 overlap)
+  extract and normalize --> chunk (300 tokens, one-sentence overlap)
           |                              |
           +------------------------------v
                                OpenAI embeddings
@@ -45,7 +45,7 @@ The user interacts with the Next.js frontend. A server-side route validates the 
 1. Enumerate supported `.pdf` and `.md` files under `/corpus`; reject paths outside that root.
 2. Read each file and retain source and one-based page metadata.
 3. Normalize Unicode and whitespace without destroying paragraph boundaries.
-4. Split paragraphs into sentences and assemble approximately 300-token chunks with 50-token overlap. Never split a sentence unless a single sentence exceeds the maximum.
+4. Split paragraphs into sentences and assemble approximately 300-token chunks with one sentence of overlap, typically 20–60 tokens. Exact overlap tokens are not enforced because sentences are atomic. Never split a sentence unless it exceeds the 500-token hard maximum.
 5. Generate `text-embedding-3-small` embeddings in bounded batches.
 6. Upsert chunks using `(source, chunk_index)` as the stable identity and store the 1536-value vector.
 7. Log source count, chunk count, rejected files, duration, and request ID. A completed idempotency key is safe to replay.
@@ -60,7 +60,7 @@ Partial ingestion is not reported as success. Database writes for a source are t
 4. If the result is empty, return the standard unsupported-answer state without an LLM call.
 5. Build a system prompt containing role, constraints, output rules, and numbered context blocks with source metadata.
 6. Ask GPT-4o-mini for a concise answer. User text and retrieved text remain delimited and cannot override system instructions.
-7. Stream answer deltas. Emit a final citations event derived from retrieved records, not invented model output.
+7. Buffer and validate the structured model output. In v1, emit one SSE answer delta containing the complete answer, then a citations event derived from verified retrieved records, and finally a done event.
 8. Record latency, token counts, retrieval scores, status, and request ID without logging sensitive full text.
 
 ## Prompt boundary
@@ -87,7 +87,7 @@ This means: **the bot can be wrong, but it cannot be confidently wrong.**
 
 | Decision | Chosen approach | Alternative | Rationale and cost |
 |---|---|---|---|
-| Chunk size | 300 tokens, 50 overlap | 1,000-token chunks | Smaller chunks improve retrieval precision and reduce prompt cost; they may lose broader context, mitigated by overlap and top-5 retrieval |
+| Chunk size | 300 tokens, one-sentence overlap | 1,000-token chunks | Smaller chunks improve retrieval precision and reduce prompt cost; they may lose broader context, mitigated by overlap and top-5 retrieval |
 | Generation model | GPT-4o-mini | GPT-4o | Mini is faster and cheaper for bounded synthesis; complex reasoning quality is lower but unnecessary for policy lookup |
 | Vector store | Supabase pgvector | Pinecone | One database simplifies metadata, RLS, migrations, and operations; dedicated vector stores may scale farther at very high volume |
 | Retrieval | Cosine top 5, threshold 0.7 | Large top-K or no threshold | Bounded relevant context reduces noise and hallucinations; threshold must be calibrated on the golden set |

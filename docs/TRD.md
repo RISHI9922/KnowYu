@@ -22,7 +22,7 @@ rag-bot is a Next.js application that ingests a controlled document corpus, stor
 ## Functional requirements
 
 - **FR1 — Corpus ingestion:** `POST /api/v1/ingest` reads approved PDF or Markdown inputs, extracts text, chunks it, embeds it, and persists it.
-- **FR2 — Deterministic chunking:** Content is divided into approximately 300-token chunks with 50-token overlap while preserving paragraph and sentence boundaries.
+- **FR2 — Deterministic chunking:** Content is divided into approximately 300-token chunks with one sentence of overlap, typically 20–60 tokens, while preserving paragraph and sentence boundaries.
 - **FR3 — Semantic retrieval:** Each question is embedded and supplied to `match_documents()` to return at most five chunks above a 0.7 similarity threshold.
 - **FR4 — Grounded generation:** The completion prompt contains retrieved context and explicitly forbids facts not supported by that context.
 - **FR5 — Citations:** Supported answers include deduplicated source and page citations traceable to stored chunks.

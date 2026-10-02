@@ -135,7 +135,7 @@ The remaining journeys cover retry after failure, keyboard-only use, and streami
 
 | Area | Assertion |
 |---|---|
-| Chunking | About 300 tokens, 50-token overlap, deterministic order, no empty chunk |
+| Chunking | About 300 tokens, one-sentence overlap, deterministic order, no empty chunk |
 | Embeddings | 1536 values, batched input mapping, retry and timeout behavior |
 | Retrieval top-K | Sorted descending by similarity and never more than five |
 | Threshold | Results below 0.7 excluded; boundary behavior explicit |

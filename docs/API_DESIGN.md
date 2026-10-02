@@ -84,7 +84,7 @@ All public endpoints start with `/api/v1/`. Breaking contract changes require `/
 
 ## Error codes
 
-Use stable `SCREAMING_SNAKE_CASE` codes: `INVALID_INPUT`, `MISSING_FIELD`, `RATE_LIMITED`, `NOT_FOUND`, `UNAUTHORIZED`, `LLM_TIMEOUT`, `EMBEDDING_FAILED`, `DB_TIMEOUT`, `NO_RELEVANT_DOCS`, and `DOCUMENT_TOO_LARGE`. Messages may improve without a version change; clients branch on codes, not messages.
+Use stable `SCREAMING_SNAKE_CASE` codes: `INVALID_INPUT`, `MISSING_FIELD`, `RATE_LIMITED`, `NOT_FOUND`, `UNAUTHORIZED`, `INTERNAL_ERROR`, `LLM_TIMEOUT`, `LLM_FAILED`, `EMBEDDING_FAILED`, `DB_TIMEOUT`, `NO_RELEVANT_DOCS`, and `DOCUMENT_TOO_LARGE`. Messages may improve without a version change; clients branch on codes, not messages.
 
 ## Pagination, filtering, and sorting
 
@@ -151,6 +151,8 @@ data: {"requestId":"req_01J9Y8V6QYKJ8A4ZX3H2M1N0PT"}
 ```
 
 An error after headers are sent uses an `error` event with the standard error object. Clients must handle disconnects and duplicate terminal events safely.
+
+In v1, structured model output is buffered and validated before delivery. The server emits one `delta` event containing the complete answer, followed by `citations` and `done`; it does not emit token-by-token deltas.
 
 ## Health check
 

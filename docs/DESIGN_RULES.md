@@ -95,7 +95,7 @@ Semantic colors must be contrast-tested on dark surfaces. Do not simply invert s
 - **Empty:** one sentence explaining what can be asked, followed by three examples.
 - **Loading:** a stable three-line skeleton until the first streamed text arrives.
 - **Error:** plain-language cause when known, a retry action, and preserved input.
-- **I don't know:** “I don't know based on the available documents.” Then show two related questions the corpus can answer.
+- **I don't know:** “I don't know based on the provided documents.” Then show two related questions the corpus can answer.
 - **Answered:** citations remain visible directly beneath the answer, including during later conversation turns.
 
 ## Copy rules
@@ -106,7 +106,7 @@ Use plain English, short sentences, and concrete verbs. No exclamation marks, no
 |---|---|
 | “Ask our magical AI anything!” | “Ask a question about these documents.” |
 | “Oops! Something went wrong!” | “The answer could not be loaded. Try again.” |
-| “No results.” | “I don't know based on the available documents.” |
+| “No results.” | “I don't know based on the provided documents.” |
 | “Invalid input.” | “Enter a question between 1 and 2,000 characters.” |
 | “Generating…” | “Reviewing the documents…” |
 
