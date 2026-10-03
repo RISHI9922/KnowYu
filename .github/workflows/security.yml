@@ -1,0 +1,63 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
+        continue-on-error: true
+
+  env-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure .env.local is not tracked
+        run: |
+          if git ls-files --error-unmatch .env.local 2>/dev/null; then
+            echo "ERROR: .env.local is tracked by git!"
+            exit 1
+          fi
+          echo ".env.local is not tracked. OK."
+      - name: Ensure no real keys in tracked files
+        run: |
+          if git grep -E "sk-proj-[A-Za-z0-9]{20}" -- . ':!*.md' ':!*.example' 2>/dev/null; then
+            echo "ERROR: Real OpenAI key found in tracked files!"
+            exit 1
+          fi
+          echo "No real keys found. OK."
+
+  typecheck-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test

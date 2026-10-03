@@ -106,3 +106,19 @@ Only approved documents may enter `/corpus`. Before ingestion, owners must confi
 - Rate limits, payload limits, authorization failure, and prompt-injection cases are tested.
 - Logs and error responses contain no credentials or corpus content.
 - Credential owners and rotation dates are recorded outside the repository.
+
+## Known dependency advisories
+
+As of the current dependency tree, `npm audit --omit=dev` reports two
+transitive advisories:
+
+1. **PostCSS** (high) — arbitrary file read via attacker-controlled
+   `sourceMappingURL` in CSS comments. This is a build-time concern only.
+   PostCSS does not run at request time in production.
+
+2. **Sharp** (high) — image processing advisory. KnowYu does not use
+   `next/image` and does not process images.
+
+Both are transitive dependencies of Next.js. Resolving them requires an
+upgrade to Next.js 16 and React 19, which is planned for a future
+release. Neither advisory affects KnowYu's runtime attack surface.

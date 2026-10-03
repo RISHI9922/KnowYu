@@ -107,6 +107,21 @@ Ingest a document: place PDF or Markdown files in ./corpus/, then:
       -H "Content-Type: application/json" \
       -d '{}'
 
+## Deploying
+
+Before deploying publicly, add Vercel Password Protection to prevent
+unknown users from consuming your OpenAI credits:
+
+1. Push the repo to GitHub.
+2. Import the repo at https://vercel.com/new.
+3. Set the 8 environment variables from `.env.example`.
+4. Deploy.
+5. Project Settings → Deployment Protection → enable Password Protection.
+6. Share the password only with people you trust.
+
+Once usage stabilizes, you can remove the password. See
+[docs/SECURITY.md](docs/SECURITY.md) for the full threat model.
+
 ## Cost discipline
 
 Every query is capped at 5 chunks, 2,400 total tokens, 500 output tokens,

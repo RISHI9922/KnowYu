@@ -2,6 +2,13 @@ import "server-only";
 
 import { lstat, readdir, readFile, realpath, stat } from "node:fs/promises";
 import path from "node:path";
+// SECURITY NOTE: pdf-parse currently runs in-process. If a parser CVE is
+// exploited via a malicious PDF, the attacker gains access to all
+// environment variables. This is acceptable in v1 because the corpus is
+// admin-controlled (files are placed in ./corpus/ locally, not uploaded
+// by users). Before building user uploads, isolate the parser in a
+// subprocess. See docs/UPLOAD_SECURITY.md Layer 4 for the full
+// specification.
 import { PDFParse } from "pdf-parse";
 
 import { chunkText } from "./chunking";
