@@ -92,3 +92,41 @@ Use shared design tokens from `DESIGN_RULES.md`. Prefer class-based styles and s
 - Keyboard, screen reader, narrow viewport, slow network, empty retrieval, and failure paths work.
 - Citations remain visible and match the answer.
 - Production build contains no secret, debug log, or unnecessary dependency.
+
+## Universal Device Support
+
+- Use window size classes (Compact < 600px, Medium 600–839px, Expanded 840–1199px, Large 1200px+), not device-specific breakpoints.
+- Listen for resize and orientation changes. Never assume the window is static.
+- Use `window.matchMedia("(horizontal-viewport-segments: 2)")` to detect foldable dual-pane postures.
+- Use `viewport-segment` env vars for hinge-aware layout:
+  ```css
+  padding-left: env(viewport-segment-left 0 0, 0px);
+  padding-right: env(viewport-segment-right 0 0, 0px);
+  ```
+- Persist chat state, composer input, and scroll position across fold/unfold/resize events.
+- Test at: 320px, 375px, 393px, 600px, 840px, 1200px, 1440px.
+- Test on: iPhone SE, iPhone 15 Pro, Galaxy Z Fold (folded + unfolded), iPad Mini, iPad Pro, MacBook.
+- Test split-screen multitasking — never assume full-screen.
+- Prefer CSS container queries (`@container`) over viewport media queries.
+
+## Mobile performance
+
+- Viewport meta in `app/layout.tsx`:
+  ```html
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  ```
+- Use `100dvh`, not `100vh`, for full-height containers.
+- Avoid heavy layouts on mobile: no `backdrop-filter`, no large shadows, no fixed backgrounds.
+- Use `will-change` sparingly — it forces GPU layers that hurt battery.
+- Test on real devices, not just Chrome DevTools. DevTools does not reproduce iOS Safari quirks.
+- Lazy-load the message list if it exceeds 50 messages.
+- Use `content-visibility: auto` for off-screen message bubbles.
+
+## Mobile composer rules
+
+- The composer is anchored to the bottom of the viewport, above the safe area.
+- `padding-bottom: max(16px, env(safe-area-inset-bottom))`.
+- Input font-size is 16px minimum to prevent iOS zoom on focus.
+- Do not use `position: fixed` for the composer on mobile. Use a flex column with `flex: 1` on the messages area and sticky bottom on the composer.
+- When the keyboard opens, the composer remains visible.
+- Every interactive element is ≥ 44×44px.

@@ -242,8 +242,8 @@ Semantic colors must be contrast-tested on dark surfaces. Do not simply invert s
 
 ## UX states
 
-- **First load:** one-sentence purpose and three example-question chips derived from the corpus.
-- **Empty:** one sentence explaining what can be asked, followed by three examples.
+- **First load:** a concise purpose statement with the composer visually primary.
+- **Empty:** one sentence explaining what can be asked.
 - **Loading:** a stable three-line skeleton until the first streamed text arrives.
 - **Error:** plain-language cause when known, a retry action, and preserved input.
 - **I don't know:** "I don't know based on the provided documents." Then show two related questions the corpus can answer.
@@ -346,3 +346,79 @@ Within five seconds, a first-time user must be able to answer:
 "Does this help the user answer their question faster?"
 
 If no, delete it.
+
+---
+
+## Chat Layout
+
+This section defines the current chat shell and takes precedence over earlier
+rules wherever they conflict.
+
+### Layout
+
+- The shell is a flex row that fills the viewport using `100dvh`.
+- The sidebar is 280px wide on Expanded and Large windows.
+- The sidebar is hidden on Compact and Medium windows. A drawer may be added
+  later, but the v1 redesign does not include a drawer or hamburger control.
+- The main chat column uses the remaining width and contains the message scroll
+  area and bottom composer.
+
+### Colors
+
+- Sidebar background: `linear-gradient(180deg, #0A0A0A 0%, #171717 100%)`.
+- Sidebar text: `#FAFAFA`.
+- Sidebar muted text: `#A3A3A3`.
+- Sidebar cards: `#171717` with a 1px `#404040` border.
+- Main background: `#FAFAFA`.
+- User bubbles: `#FFFFFF` with a 1px `#E5E5E5` border and 12px radius.
+- Assistant bubbles: `#FFFFFF` with a 3px `#2563EB` left accent border and
+  12px radius.
+- User avatars use `#F5C9B8`; assistant avatars use `#A8D5E5`.
+- The sidebar gradient, avatar colors, blue assistant accent, and subtle message
+  and composer shadows are intentional exceptions to the earlier palette,
+  gradient, and flat-card restrictions.
+
+### Avatars
+
+- Avatars are 32px circles containing an emoji, initial, or KnowYu mark.
+- The user avatar may use `🙂`; the assistant avatar may use `📚`.
+- These avatar glyphs are intentional exceptions to the citation-only emoji
+  rule.
+
+### Composer
+
+- The composer is a pill-shaped white container with a 1px `#E5E5E5` border.
+- The textarea sits on the left. Paperclip, smile, and send controls sit on the
+  right.
+- The send control is circular with a `#171717` background and white icon.
+- Attach and emoji controls are muted ghost buttons and remain disabled in v1.
+
+### Typography
+
+- Continue using Inter for interface text and JetBrains Mono for code and IDs.
+- Use Manrope at 700 weight for the centered `KnowYu` application wordmark. It is
+  loaded through `next/font` for self-hosted, layout-stable delivery.
+- Message text uses 15px type with a 22px line height.
+- Message metadata uses 12px type with a 16px line height.
+
+### Icons
+
+- Use Lucide for paperclip, smile, and arrow-up icons.
+- Icons are 20px with a 1.5px stroke, except the send arrow may use a 2px
+  stroke for legibility.
+
+## Simplified static design
+
+This section supersedes earlier visual rules where they conflict.
+
+- Page background: `#F9F8F8`; surface: `#FFFFFF`.
+- Primary text and the static sidebar: `#152443`.
+- Interactive accent: `#4176E6`; borders: `#E5E7EB`.
+- Use DM Sans for interface and message text. Use Montserrat at 500 weight for
+  the centered KnowYu wordmark and primary headings.
+- Keep the layout static. Decorative background animation, WebGL, animated
+  gradients, and grain overlays are not part of this design.
+- Use 12px, 18px, or 24px radii for containers. The composer may retain a
+  pill-like shape where needed for its single-line control.
+- Prefer one subtle `0 1px 3px rgba(0, 0, 0, 0.08)` shadow only where it helps
+  distinguish an interactive surface.

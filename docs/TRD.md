@@ -8,7 +8,7 @@ knowyu is a Next.js application that ingests a controlled document corpus, store
 
 | Technology | Use | Why |
 |---|---|---|
-| Next.js 14 App Router | UI and server API | One TypeScript deployment, server components, route handlers, and streaming support |
+| Next.js 15 App Router | UI and server API | One TypeScript deployment, server components, route handlers, and streaming support |
 | TypeScript | Application language | Static contracts across ingestion, retrieval, and response rendering |
 | Supabase Postgres | Metadata and messages | Managed relational storage with SQL, migrations, backups, and RLS |
 | pgvector | Embedding search | Keeps vector and source metadata transactional and queryable in Postgres |
@@ -76,3 +76,7 @@ Versions must be pinned through the lockfile, reviewed by automated dependency u
 ## Constraints and assumptions
 
 The embedding dimension is fixed at 1536; changing models requires a new column or full re-embedding migration. The corpus is trusted administrative input, but its contents are untrusted prompt data. PDF page metadata is retained during extraction. Serverless execution limits require bounded file sizes and batch operations. The first release targets one approved corpus and one production environment.
+
+## Changelog
+
+- Upgraded from Next.js 14 to Next.js 15 to incorporate current framework security fixes while retaining React 18 compatibility.
