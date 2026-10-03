@@ -26,6 +26,15 @@ Three gates prevent hallucination:
 
 The result: the bot can be wrong, but it cannot be confidently wrong.
 
+## Preview
+
+| Light | Dark |
+|---|---|
+| ![KnowYu in light mode](docs/screenshots/light.png) | ![KnowYu in dark mode](docs/screenshots/dark.png) |
+
+Both themes are available via the toggle in the top-right corner. The
+choice persists across reloads.
+
 ## Stack
 
 | Layer | Technology |
@@ -108,6 +117,9 @@ and approximately $0.005 per query. Most RAG bots spend 4x more per query.
 The interface is intentionally calm. No gradients, no purple AI colors, no
 glassmorphism, no shaders. The reference set is Stripe Docs, Linear, and
 Vercel.
+
+Light and dark modes are both supported, respecting the operating system
+preference by default and persisting an explicit choice in localStorage.
 
 ## Testing
 
