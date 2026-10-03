@@ -5,6 +5,8 @@ out/
 coverage/
 playwright-report/
 test-results/
+tsconfig.tsbuildinfo
+next-env.d.ts
 
 # Secrets and local configuration
 .env
@@ -19,6 +21,3 @@ test-results/
 *.log
 .idea/
 .vscode/
-tsconfig.tsbuildinfo
-
-next-env.d.ts
