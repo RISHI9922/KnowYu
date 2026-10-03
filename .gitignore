@@ -19,3 +19,4 @@ test-results/
 *.log
 .idea/
 .vscode/
+tsconfig.tsbuildinfo
