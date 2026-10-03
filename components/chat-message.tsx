@@ -13,12 +13,6 @@ function ChatMessageInner({ role, content, citations }: ChatMessageProps) {
 
   return (
     <div className={`message-row message-row-${role}`}>
-      <div
-        className={`message-avatar message-avatar-${role}`}
-        aria-hidden="true"
-      >
-        {isUser ? "🙂" : "📚"}
-      </div>
       <div className={`message-bubble message-${role}`}>
         <p>{content}</p>
         {!isUser && <CitationList citations={citations} />}

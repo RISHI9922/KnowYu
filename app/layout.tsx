@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, JetBrains_Mono, Montserrat } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
+
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -32,8 +35,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
-    { media: "(prefers-color-scheme: dark)", color: "#0A0A0A" },
+    { media: "(prefers-color-scheme: light)", color: "#F9F8F8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F1115" },
   ],
 };
 
@@ -44,17 +47,28 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('knowyu-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body
         className={`${dmSans.variable} ${jetBrainsMono.variable} ${montserrat.variable}`}
       >
         <a className="skip-link" href="#main-content">
           Skip to chat
         </a>
+        <div className="app-topbar">
+          <ThemeToggle />
+        </div>
         <div className="app-shell">
           <main id="main-content" className="chat-main">
-            <header className="app-brand">
-              <h1>KnowYu</h1>
-            </header>
+            <div className="app-brand">
+              <Logo size={24} className="app-brand-logo" />
+              <h1 className="app-brand-wordmark">KnowYu</h1>
+            </div>
             {children}
           </main>
         </div>

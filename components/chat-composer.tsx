@@ -45,6 +45,9 @@ export function ChatComposer({
 
   return (
     <form className="chat-composer" onSubmit={handleSubmit}>
+      <label className="composer-label" htmlFor="question">
+        Ask a question
+      </label>
       <div className="composer-pill">
         <textarea
           id="question"

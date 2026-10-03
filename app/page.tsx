@@ -342,7 +342,12 @@ export default function HomePage() {
       <div ref={scrollAreaRef} className="message-scroll-area">
         <div className="message-list">
           {messages.length === 0 ? (
-            <EmptyState />
+            <EmptyState
+              onQuestionSelect={(selectedQuestion) => {
+                setQuestion(selectedQuestion);
+                focusComposer(composerRef);
+              }}
+            />
           ) : (
             // Future optimization: virtualize this list when message count > 50.
             // For v1, memoized ChatMessage components keep this fast enough.
