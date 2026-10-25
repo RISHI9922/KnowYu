@@ -21,3 +21,4 @@ next-env.d.ts
 *.log
 .idea/
 .vscode/
+supabase/snippets/
