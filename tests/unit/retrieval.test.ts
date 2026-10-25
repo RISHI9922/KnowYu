@@ -48,8 +48,12 @@ describe("answerQuestion", () => {
   it("refuses when every generated citation fails verification", async () => {
     matchDocumentsMock.mockResolvedValue([document()]);
     generateAnswerMock.mockResolvedValue({
-      answer: "Unsupported answer.",
-      citations: [{ source: "invented.pdf", page: 99 }],
+      answer: {
+        answer: "Unsupported answer.",
+        citations: [{ source: "invented.pdf", page: 99 }],
+      },
+      inputTokens: 100,
+      outputTokens: 20,
     });
 
     await expect(answerQuestion("Question", { requestId: "req-2" }))
@@ -62,8 +66,12 @@ describe("answerQuestion", () => {
   it("returns the refusal when the model produces the exact refusal", async () => {
     matchDocumentsMock.mockResolvedValue([document()]);
     generateAnswerMock.mockResolvedValue({
-      answer: "I don't know based on the provided documents.",
-      citations: [],
+      answer: {
+        answer: "I don't know based on the provided documents.",
+        citations: [],
+      },
+      inputTokens: 100,
+      outputTokens: 20,
     });
 
     await expect(answerQuestion("Question", { requestId: "req-3" }))
@@ -76,8 +84,12 @@ describe("answerQuestion", () => {
   it("returns an answer when retrieved citations verify", async () => {
     matchDocumentsMock.mockResolvedValue([document()]);
     generateAnswerMock.mockResolvedValue({
-      answer: "Employees receive 20 days of annual leave.",
-      citations: [{ source: "handbook.pdf", page: 12 }],
+      answer: {
+        answer: "Employees receive 20 days of annual leave.",
+        citations: [{ source: "handbook.pdf", page: 12 }],
+      },
+      inputTokens: 100,
+      outputTokens: 20,
     });
 
     await expect(answerQuestion("How much leave is provided?", {
@@ -104,8 +116,12 @@ describe("answerQuestion", () => {
       }),
     ]);
     generateAnswerMock.mockResolvedValue({
-      answer: "Small relevant policy.",
-      citations: [{ source: "small.pdf", page: 2 }],
+      answer: {
+        answer: "Small relevant policy.",
+        citations: [{ source: "small.pdf", page: 2 }],
+      },
+      inputTokens: 100,
+      outputTokens: 20,
     });
 
     await expect(answerQuestion("Question", { requestId: "req-5" }))

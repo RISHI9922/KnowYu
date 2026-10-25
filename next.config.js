@@ -26,7 +26,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' https://api.openai.com https://*.supabase.co https://*.upstash.io",
+              "connect-src 'self' http://localhost:54321 http://127.0.0.1:54321 https://generativelanguage.googleapis.com https://*.supabase.co https://*.upstash.io",
               "media-src 'none'",
               "object-src 'none'",
               "frame-ancestors 'none'",

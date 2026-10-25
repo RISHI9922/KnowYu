@@ -7,6 +7,7 @@ import {
   useState,
   type RefObject,
 } from "react";
+import Link from "next/link";
 
 import { ChatComposer } from "../components/chat-composer";
 import { ChatMessage } from "../components/chat-message";
@@ -24,6 +25,14 @@ interface ChatMessageState {
   content: string;
   citations: ReadonlyArray<Citation>;
   complete: boolean;
+}
+
+interface HistoryMessage {
+  id: string;
+  role: MessageRole;
+  content: string;
+  citations: ReadonlyArray<Citation>;
+  createdAt: string;
 }
 
 interface SseEvent {
@@ -135,12 +144,65 @@ export default function HomePage() {
   const [requestId, setRequestId] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [autoScroll, setAutoScroll] = useState(true);
+  const [history, setHistory] = useState<Array<HistoryMessage>>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => abortControllerRef.current?.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadHistory(): Promise<void> {
+      try {
+        const response = await fetch("/api/v1/history", {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const body: unknown = await response.json();
+
+        if (
+          !isRecord(body)
+          || !isRecord(body.data)
+          || !Array.isArray(body.data.messages)
+        ) {
+          return;
+        }
+
+        const loaded = body.data.messages.filter((message): message is HistoryMessage => (
+          isRecord(message)
+          && typeof message.id === "string"
+          && (message.role === "user" || message.role === "assistant")
+          && typeof message.content === "string"
+          && Array.isArray(message.citations)
+          && typeof message.createdAt === "string"
+        ));
+        setHistory(loaded);
+        setMessages((current) => current.length > 0 ? current : (
+          loaded.slice().reverse().map((message) => ({
+            id: message.id,
+            role: message.role,
+            content: message.content,
+            citations: message.citations,
+            complete: true,
+          }))
+        ));
+      } catch (cause) {
+        if (!isAbortError(cause)) {
+          setHistory([]);
+        }
+      }
+    }
+
+    void loadHistory();
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -339,6 +401,26 @@ export default function HomePage() {
 
   return (
     <>
+      {history.some((message) => message.role === "user") ? (
+        <section className="history-section" aria-labelledby="history-heading">
+          <h3 id="history-heading">History</h3>
+          <div className="history-list">
+            {history.filter((message) => message.role === "user").map((message) => (
+              <button
+                key={message.id}
+                className="history-item"
+                type="button"
+                onClick={() => {
+                  setQuestion(message.content);
+                  focusComposer(composerRef);
+                }}
+              >
+                {message.content}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <div ref={scrollAreaRef} className="message-scroll-area">
         <div className="message-list">
           {messages.length === 0 ? (
@@ -389,6 +471,9 @@ export default function HomePage() {
           onChange={setQuestion}
           onSubmit={submitQuestion}
         />
+        <div className="chat-footer-link">
+          <Link href="/admin/upload">Upload corpus files</Link>
+        </div>
       </div>
     </>
   );

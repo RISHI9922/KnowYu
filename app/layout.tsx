@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getSessionUser } from "@/lib/auth";
 
 import "./globals.css";
 
@@ -44,7 +45,9 @@ interface RootLayoutProps {
   children: ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const user = await getSessionUser();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -61,6 +64,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Skip to chat
         </a>
         <div className="app-topbar">
+          {user === null ? null : (
+            <form action="/auth/signout" method="post">
+              <button className="topbar-action" type="submit">Sign out</button>
+            </form>
+          )}
           <ThemeToggle />
         </div>
         <div className="app-shell">

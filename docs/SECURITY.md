@@ -8,7 +8,7 @@ knowyu treats user questions and corpus text as untrusted input. Secrets, retrie
 
 - Never commit `.env`, `.env.local`, credentials, tokens, or production URLs containing secrets.
 - Store production and preview values in Vercel environment variables with the narrowest environment scope.
-- Keep `SUPABASE_SERVICE_ROLE_KEY` and `OPENAI_API_KEY` server-only. Never prefix them with `NEXT_PUBLIC_`.
+- Keep `SUPABASE_SERVICE_ROLE_KEY` and `GEMINI_API_KEY` server-only. Never prefix them with `NEXT_PUBLIC_`.
 - Rotate credentials at least every 90 days and immediately after suspected exposure or personnel access changes.
 - Use separate credentials for local, preview, and production environments.
 - Redact secrets, authorization headers, raw embeddings, and full user questions from logs.
@@ -21,7 +21,7 @@ The committed `.env.example` represented by this block contains names and safe d
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
-OPENAI_API_KEY=<openai-api-key>
+GEMINI_API_KEY=<gemini-api-key>
 INGEST_ADMIN_TOKEN=<random-32-byte-token>
 UPSTASH_REDIS_URL=https://<database-name>.upstash.io
 UPSTASH_REDIS_TOKEN=<upstash-redis-token>
@@ -33,7 +33,7 @@ ALLOWED_ORIGINS=https://knowyu.example.com
 
 ## API security
 
-- Invoke OpenAI only from server route handlers or server libraries.
+- Invoke Gemini only from server route handlers or server libraries.
 - Never send the service-role key, admin token, provider key, or system prompt to the browser.
 - Rate-limit chat to 10 requests per minute per IP. Ingestion is limited to 2 requests per minute per administrator identity.
 - Validate headers, params, and JSON bodies with Zod. Reject unknown fields where practical.
@@ -42,6 +42,34 @@ ALLOWED_ORIGINS=https://knowyu.example.com
 - Generate or validate `X-Request-ID`; allow only a conservative character set and maximum length.
 - Return generic production errors. Log internal causes with the request ID.
 - Enforce HTTPS, secure headers, and a production CORS allowlist.
+
+## Provider: Google Gemini
+
+KnowYu uses Google Gemini through its OpenAI-compatible endpoint at
+`https://generativelanguage.googleapis.com/v1beta/openai/`.
+
+### Models
+
+- Chat: `gemini-2.5-flash`
+- Embeddings: `gemini-embedding-001`, explicitly requested at 1536 dimensions
+
+### Why OpenAI-compatible
+
+Google's OpenAI-compatible endpoint preserves the existing SDK structure. The
+application continues to use the `openai` package with its `baseURL` set to
+Google's endpoint.
+
+### Key isolation
+
+`GEMINI_API_KEY` is server-only and never appears in the client bundle. The
+`server-only` import guards in `lib/openai.ts` and `lib/env.ts` enforce this at
+build time.
+
+### Free-tier consideration
+
+Gemini's free tier allowed 15 requests per minute for `gemini-2.5-flash` at
+the time of migration. Verify current limits before deployment. For production,
+use an appropriate paid tier and configure a budget cap in Google Cloud.
 
 ## Database security
 
@@ -86,7 +114,7 @@ test-results/
 
 ## Data handling
 
-Only approved documents may enter `/corpus`. Before ingestion, owners must confirm that the corpus contains no secrets or data prohibited for OpenAI processing. Retain chat content only when required; default logs contain hashes or short metadata, not full messages. Define deletion and retention periods before enabling persistent chat history.
+Only approved documents may enter `/corpus`. Before ingestion, owners must confirm that the corpus contains no secrets or data prohibited for Gemini processing. Retain chat content only when required; default logs contain hashes or short metadata, not full messages. Define deletion and retention periods before enabling persistent chat history.
 
 ## Incident response
 

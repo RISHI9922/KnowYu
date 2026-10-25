@@ -1,6 +1,9 @@
+import "server-only";
+
 import { NextRequest, NextResponse } from "next/server";
 import type { ZodError } from "zod";
 
+import { requireSessionUser } from "../../../../lib/auth";
 import { AppError, toHttpStatus, toPublicError } from "../../../../lib/errors";
 import { logger } from "../../../../lib/logger";
 import { chatLimiter, rateLimitHeaders } from "../../../../lib/rate-limit";
@@ -94,6 +97,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   }, TOTAL_TIMEOUT_MS);
 
   try {
+    const user = await requireSessionUser();
     const rateLimit = await chatLimiter.limit(getClientIp(request));
     headers = {
       ...rateLimitHeaders(rateLimit),
@@ -161,6 +165,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const result = await answerQuestion(parsed.data.question, {
       requestId,
+      userId: user.id,
       signal: totalController.signal,
     });
 

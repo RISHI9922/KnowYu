@@ -1,12 +1,10 @@
 # KnowYu
 
+[![CI](https://github.com/RISHI9922/KnowYu/actions/workflows/ci.yml/badge.svg)](https://github.com/RISHI9922/KnowYu/actions/workflows/ci.yml)
+
 A retrieval-augmented question-answering bot that answers questions from
 your documents — with citations you can verify, and honest refusals when
 the answer isn't in the corpus.
-
-Supports PDF and Markdown today. Image support (JPG, PNG, WebP) is
-planned for v2 — OCR will run entirely in the browser, so the server
-never receives an image binary.
 
 ## The problem
 
@@ -30,20 +28,6 @@ Three gates prevent hallucination:
 
 The result: the bot can be wrong, but it cannot be confidently wrong.
 
-## Supported inputs
-
-| Input | Status | Notes |
-|---|---|---|
-| PDF | ✅ Supported | Text-based PDFs only (no server-side OCR) |
-| Markdown (.md, .markdown) | ✅ Supported | UTF-8 text |
-| Images (.jpg, .jpeg, .png, .webp) | 📋 Planned for v2 | OCR runs client-side; the image never leaves the browser |
-| Handwritten notes | ⚠️ Limited | OCR works best on printed text; handwriting requires external OCR |
-
-The upload system is designed in
-[docs/UPLOAD_SECURITY.md](docs/UPLOAD_SECURITY.md) and
-[docs/IMAGE_UPLOAD_SECURITY.md](docs/IMAGE_UPLOAD_SECURITY.md).
-The current v1 uses admin-only CLI ingestion via `POST /api/v1/ingest`.
-
 ## Preview
 
 | Light | Dark |
@@ -59,140 +43,183 @@ choice persists across reloads.
 |---|---|
 | Framework | Next.js 15 (App Router, React 18) |
 | Database | Supabase Postgres + pgvector (HNSW index, cosine distance) |
-| LLM | OpenAI GPT-4o-mini |
-| Embeddings | OpenAI text-embedding-3-small (1536 dimensions) |
+| LLM | Google Gemini 2.5 Flash |
+| Embeddings | Google Gemini Embedding 001 (1536 dimensions) |
 | Rate limiting | Upstash Redis (serverless-safe) |
+| Authentication | Supabase Auth (email magic links) |
 | Hosting | Vercel-ready |
 | Testing | Vitest (20 unit tests) |
 | Icons | Lucide React |
 
 ## Documentation
 
-Twelve planning documents in `docs/`:
+Planning and validation documents in docs/:
 
-- [PRD](docs/PRD.md) — product requirements, success metrics
-- [TRD](docs/TRD.md) — technical requirements, data model
-- [System Design](docs/SYSTEM_DESIGN.md) — architecture, tradeoffs, failure modes
-- [Security](docs/SECURITY.md) — threat model, prompt injection defense
-- [API Design](docs/API_DESIGN.md) — versioning, error codes, streaming format
-- [Backend Rules](docs/BACKEND_RULES.md) — coding standards
-- [Frontend Rules](docs/FRONTEND_RULES.md) — component standards
-- [Design Rules](docs/DESIGN_RULES.md) — colors, typography, universal device support
-- [Database Rules](docs/DATABASE_RULES.md) — schema, RLS, indexes
-- [Testing Rules](docs/TESTING_RULES.md) — test pyramid, CI config
-- [Upload Security](docs/UPLOAD_SECURITY.md) — v2 upload threat model and mitigations
-- [Image Upload Security](docs/IMAGE_UPLOAD_SECURITY.md) — image OCR threat model and client-side architecture
+- PRD — product requirements, success metrics
+- TRD — technical requirements, data model
+- System Design — architecture, tradeoffs, failure modes
+- Security — threat model, prompt injection defense
+- API Design — versioning, error codes, streaming format
+- Backend Rules — coding standards
+- Frontend Rules — component standards
+- Design Rules — colors, typography, universal device support
+- Database Rules — schema, RLS, indexes
+- Testing Rules — test pyramid, CI config
+- Upload Security — v2 upload threat model and mitigations
+- Attack Tests — adversarial security validation results
 
 ## Running locally
 
-Prerequisites: Node.js 20+, Docker, an OpenAI API key with credits, and a
+Prerequisites: Node.js 20+, Docker, a Gemini API key, and a
 free Upstash Redis database.
 
-```bash
-git clone https://github.com/RISHI9922/KnowYu
-cd KnowYu
-npm install
-cp .env.example .env.local
-```
+    git clone https://github.com/RISHI9922/KnowYu
+    cd KnowYu
+    npm install
+    cp .env.example .env.local
 
-Edit `.env.local` with your values:
+Edit .env.local with your values:
 
 | Variable | Where to get it |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase dashboard |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same dashboard |
-| `SUPABASE_SERVICE_ROLE_KEY` | Same dashboard, server-only |
-| `OPENAI_API_KEY` | platform.openai.com/api-keys |
-| `INGEST_ADMIN_TOKEN` | `openssl rand -base64 32` |
-| `UPSTASH_REDIS_URL` | console.upstash.com free tier |
-| `UPSTASH_REDIS_TOKEN` | Same |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` for local dev |
+| NEXT_PUBLIC_SUPABASE_URL | Supabase dashboard |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY | Same dashboard |
+| SUPABASE_SERVICE_ROLE_KEY | Same dashboard, server-only |
+| GEMINI_API_KEY | aistudio.google.com/app/apikey |
+| INGEST_ADMIN_TOKEN | openssl rand -base64 32 |
+| UPSTASH_REDIS_URL | console.upstash.com free tier |
+| UPSTASH_REDIS_TOKEN | Same |
+| ALLOWED_ORIGINS | http://localhost:3000 for local dev |
 
 Start Supabase locally:
 
-```bash
-npx supabase start
-npx supabase db reset
-```
+    npx supabase start
+    npx supabase db reset
 
 Run the app:
 
-```bash
-npm run dev
-```
+    npm run dev
 
-Open [http://localhost:3000](http://localhost:3000).
+Open http://localhost:3000 and sign in with an email magic link. In local
+development, retrieve the link from Inbucket at http://127.0.0.1:54324.
 
-Ingest a document: place PDF or Markdown files in `./corpus/`, then:
+Ingest a document: place PDF or Markdown files in ./corpus/, then:
 
-```bash
-source .env.local
-curl -X POST http://localhost:3000/api/v1/ingest \
-  -H "Authorization: Bearer $INGEST_ADMIN_TOKEN" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
+    source .env.local
+    curl -X POST http://localhost:3000/api/v1/ingest \
+      -H "Authorization: Bearer $INGEST_ADMIN_TOKEN" \
+      -H "Idempotency-Key: $(uuidgen)" \
+      -H "Content-Type: application/json" \
+      -d '{}'
+
+The authenticated admin upload page is available at `/admin/upload`. It also
+requires `INGEST_ADMIN_TOKEN`; the token is retained only in session storage.
+
+## Local authentication
+
+KnowYu uses Supabase Auth with email magic links. In local development,
+Supabase captures emails in a local inbox—no real email is sent.
+
+After starting the app:
+
+1. Open http://localhost:3000.
+2. You will be redirected to `/login`.
+3. Enter any email address, such as `you@example.com`.
+4. Click **Send magic link**.
+5. Open http://127.0.0.1:54324 for Supabase Mailpit.
+6. Click the magic link in the email.
+7. You are signed in.
+
+If login fails with "Load failed":
+
+- Confirm Supabase is running with `npx supabase status`.
+- Confirm `supabase/config.toml` uses `site_url = "http://localhost:3000"`.
+- Confirm `additional_redirect_urls` includes both localhost and 127.0.0.1,
+  their `/auth/callback` paths, and their `/**` wildcards.
+- Restart Supabase with `npx supabase stop && npx supabase start`.
+- Restart Next.js with <kbd>Ctrl</kbd>+<kbd>C</kbd>, then `npm run dev`.
+- Clear browser cookies for localhost and try again.
 
 ## Deploying
-
-Before deploying publicly, add Vercel Password Protection to prevent
-unknown users from consuming your OpenAI credits:
 
 1. Push the repo to GitHub.
 2. Import the repo at https://vercel.com/new.
 3. Set the 8 environment variables from `.env.example`.
 4. Deploy.
-5. Project Settings → Deployment Protection → enable Password Protection.
-6. Share the password only with people you trust.
 
-Once usage stabilizes, you can remove the password. See
+Access is protected by Supabase Auth. Configure the production site URL and
+redirect URL in Supabase before sending magic links. See
 [docs/SECURITY.md](docs/SECURITY.md) for the full threat model.
 
 ## Cost discipline
 
-Every query is capped at:
+Every query is capped at 5 chunks, approximately 2,400 total tokens, and 500
+output tokens. Cost accounting uses Gemini's reported token counts and the
+migration-time rates of $0.30 per million input tokens and $2.50 per million
+output tokens for Gemini 2.5 Flash. Embeddings are estimated at $0.15 per
+million input tokens. Verify current pricing at https://ai.google.dev/pricing
+before deploying.
 
-- 5 chunks retrieved (not 20)
-- 2,400 total tokens
-- 500 output tokens
-- ~$0.005 per query
+## Evaluation
 
-Most RAG bots spend 4x more per query. This one publishes its budget.
+Evaluated on 30 questions against the reference corpus. Corpus-dependent
+values are populated by `npm run test:eval` after `handbook.md` is ingested.
+
+| Metric | Result |
+|---|---|
+| Total questions | 30 |
+| Answerable | 23 |
+| Correctly answered with citations | Run locally |
+| Correctly refused (not in corpus) | Run locally |
+| Hallucinated | 0 required |
+| Grounded accuracy | ≥ 85% required |
+| Refusal precision | Run locally |
+
+Run locally with `npm run test:eval`. See
+[tests/eval/questions.json](tests/eval/questions.json) for the full set.
+
+## Latency
+
+Authenticated end-to-end latency can be sampled with `npm run latency:measure`
+and summarized with `npm run latency:report`. Set `KNOWYU_AUTH_COOKIE` before
+running the measurement script. Chat latency is also recorded with usage data.
+
+## Security validation
+
+Adversarial inputs tested against the v1 build. See
+[docs/ATTACK_TESTS.md](docs/ATTACK_TESTS.md) for the full results.
+
+| Test | Result |
+|---|---|
+| Prompt injection via question | ✅ Pass |
+| Prompt injection via document | ✅ Pass |
+| SQL injection | ✅ Pass |
+| XSS via document | ✅ Pass |
+| Fake citation detection | ✅ Pass |
+| Rate limit bypass | ✅ Pass |
 
 ## Design
 
-The interface is intentionally calm. No gradients, no purple AI colors,
-no glassmorphism, no shaders. The reference set is Stripe Docs, Linear,
-and Vercel.
+The interface is intentionally calm. No gradients, no purple AI colors, no
+glassmorphism, no shaders. The reference set is Stripe Docs, Linear, and
+Vercel.
 
 Light and dark modes are both supported, respecting the operating system
 preference by default and persisting an explicit choice in localStorage.
 
-For image uploads, OCR runs in the user's browser via Tesseract.js. The
-original image never reaches the server — only the extracted text is
-uploaded as a synthetic Markdown file. This eliminates parser RCE,
-decompression bombs, and EXIF metadata leakage by design. See
-[docs/IMAGE_UPLOAD_SECURITY.md](docs/IMAGE_UPLOAD_SECURITY.md) for the
-full threat model.
-
 ## Testing
 
-```bash
-npm test
-```
+    npm test
 
-20 unit tests cover chunking, prompt construction, and retrieval. A
-security CI workflow runs on every push (gitleaks, npm audit, env-guard,
-typecheck, test).
+Unit tests cover chunking, prompt construction, and retrieval. The golden eval
+suite is intentionally separate because it requires an ingested corpus and
+live provider credentials.
 
-## What's not in v1
+## Product capabilities
 
-- Admin browser upload UI (spec in [docs/UPLOAD_SECURITY.md](docs/UPLOAD_SECURITY.md))
-- Image upload with client-side OCR (spec in [docs/IMAGE_UPLOAD_SECURITY.md](docs/IMAGE_UPLOAD_SECURITY.md))
-- User accounts (single-tenant by design)
-- Conversation history persistence (state-only)
-- Multi-file corpus management UI
+- Email magic-link accounts with per-user conversation isolation
+- Conversation history restored after reload
+- Password-protected admin corpus uploads to private storage
 
 ## License
 

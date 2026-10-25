@@ -15,7 +15,7 @@
 
 ## Locked data types
 
-Use `uuid` for IDs, `text` instead of `varchar`, `timestamptz` instead of `timestamp`, `numeric(10,2)` for money, `jsonb` instead of `json`, and `vector(1536)` for OpenAI embeddings. Use `integer` for bounded counters and `boolean` only for truly binary state. Do not store dates or numbers as text.
+Use `uuid` for IDs, `text` instead of `varchar`, `timestamptz` instead of `timestamp`, `numeric(10,2)` for money, `jsonb` instead of `json`, and `vector(1536)` for Gemini embeddings. Use `integer` for bounded counters and `boolean` only for truly binary state. Do not store dates or numbers as text.
 
 ## Required columns
 
@@ -82,6 +82,11 @@ create trigger trg_chat_messages_updated_at
 ```
 
 ## Vector matching function
+
+The embedding dimension is 1536. This matches Gemini's `dimensions` parameter;
+Gemini's native output is 3072 dimensions, so KnowYu explicitly requests 1536.
+If the embedding model changes, migrate the vector column dimension in a new
+migration.
 
 The default threshold is 0.7 and default count is 5. Pin the search path and expose only required columns.
 
@@ -207,7 +212,7 @@ limit $2;
 
 ## Transactions and RPC
 
-Multi-step writes that must succeed together belong in a Postgres function invoked through Supabase RPC. Examples include replacing all active chunks for one source and storing a completed ingestion idempotency record. Keep transactions short, acquire locks in a consistent order, and do not perform OpenAI network calls inside a database transaction.
+Multi-step writes that must succeed together belong in a Postgres function invoked through Supabase RPC. Examples include replacing all active chunks for one source and storing a completed ingestion idempotency record. Keep transactions short, acquire locks in a consistent order, and do not perform external provider calls inside a database transaction.
 
 ## Backups
 

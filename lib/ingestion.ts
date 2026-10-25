@@ -2,18 +2,10 @@ import "server-only";
 
 import { lstat, readdir, readFile, realpath, stat } from "node:fs/promises";
 import path from "node:path";
-// SECURITY NOTE: pdf-parse currently runs in-process. If a parser CVE is
-// exploited via a malicious PDF, the attacker gains access to all
-// environment variables. This is acceptable in v1 because the corpus is
-// admin-controlled (files are placed in ./corpus/ locally, not uploaded
-// by users). Before building user uploads, isolate the parser in a
-// subprocess. See docs/UPLOAD_SECURITY.md Layer 4 for the full
-// specification.
-import { PDFParse } from "pdf-parse";
-
 import { chunkText } from "./chunking";
 import { AppError } from "./errors";
 import { createEmbeddingsBatched } from "./openai";
+import { createPdfParser } from "./pdf";
 import {
   replaceDocumentChunks,
   type DocumentChunkInput,
@@ -110,7 +102,7 @@ async function extractPdfPages(
   signal: AbortSignal,
 ): Promise<Array<CorpusPage>> {
   signal.throwIfAborted();
-  const parser = new PDFParse({ data });
+  const parser = createPdfParser(data);
 
   try {
     const result = await parser.getText();
@@ -139,6 +131,7 @@ async function extractPages(
 }
 
 export async function ingestCorpus(
+  userId: string,
   signal?: AbortSignal,
 ): Promise<IngestionResult> {
   const controller = new AbortController();
@@ -251,7 +244,12 @@ export async function ingestCorpus(
         },
       );
 
-      await replaceDocumentChunks(source, documentChunks, combinedSignal);
+      await replaceDocumentChunks(
+        source,
+        documentChunks,
+        userId,
+        combinedSignal,
+      );
       documents += 1;
       chunks += documentChunks.length;
     }

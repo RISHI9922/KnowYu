@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
-import { getEncoding } from "js-tiktoken";
 
 import { DAILY_BUDGET_USD, estimateChatCost } from "./costs";
 import { AppError } from "./errors";
@@ -15,10 +14,11 @@ const MAX_TOTAL_TOKENS = 2_400;
 const MAX_OUTPUT_TOKENS = 500;
 const MAX_INPUT_TOKENS = MAX_TOTAL_TOKENS - MAX_OUTPUT_TOKENS - 10;
 const REFUSAL_MESSAGE = "I don't know based on the provided documents.";
-const encoding = getEncoding("cl100k_base");
+const encoder = new TextEncoder();
 
 export interface AnswerQuestionOptions {
   requestId: string;
+  userId?: string;
   signal?: AbortSignal;
 }
 
@@ -28,7 +28,9 @@ export interface AnswerQuestionResult {
 }
 
 function promptTokenCount(userPrompt: string): number {
-  return encoding.encode(`${SYSTEM_PROMPT}\n${userPrompt}`).length;
+  // Conservative provider-independent preflight estimate. Gemini supplies the
+  // exact counts after generation for usage and cost accounting.
+  return Math.ceil(encoder.encode(`${SYSTEM_PROMPT}\n${userPrompt}`).length / 4);
 }
 
 function fitDocumentsToBudget(
@@ -137,48 +139,87 @@ export async function answerQuestion(
   question: string,
   options: AnswerQuestionOptions,
 ): Promise<AnswerQuestionResult> {
+  const startedAt = Date.now();
   await checkDailyBudget();
 
+  const retrievalStartedAt = Date.now();
   const retrievedDocuments = await retrieveDocuments(question, options.signal);
+  const retrievalMs = Date.now() - retrievalStartedAt;
   const documents = fitDocumentsToBudget(question, retrievedDocuments);
   const userPrompt = buildUserPrompt(question, documents);
+  const generationStartedAt = Date.now();
   const generated = await generateAnswer(
     SYSTEM_PROMPT,
     userPrompt,
     options.signal,
   );
+  const generationMs = Date.now() - generationStartedAt;
+  const llmAnswer = generated.answer;
+
+  const citations = verifyCitations(
+    llmAnswer.citations,
+    documents,
+    options.requestId,
+  );
+  const result: AnswerQuestionResult = citations.length === 0
+    ? { answer: REFUSAL_MESSAGE, citations: [] }
+    : { answer: llmAnswer.answer, citations };
 
   try {
-    const inputTokens = encoding.encode(
-      `${SYSTEM_PROMPT}\n${userPrompt}`,
-    ).length;
-    const outputTokens = encoding.encode(generated.answer).length;
-    const costUsd = estimateChatCost(inputTokens, outputTokens);
+    const costUsd = estimateChatCost(
+      generated.inputTokens,
+      generated.outputTokens,
+    );
 
     await supabaseService.from("usage_events").insert({
       event_type: "chat",
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
+      input_tokens: generated.inputTokens,
+      output_tokens: generated.outputTokens,
       cost_usd: costUsd,
       question_hash: hashIdentifier(question),
       client_ip_hash: null,
+      retrieval_ms: retrievalMs,
+      generation_ms: generationMs,
+      total_ms: Date.now() - startedAt,
     });
   } catch {
     // Do not fail the request if cost recording fails.
   }
 
-  const citations = verifyCitations(
-    generated.citations,
-    documents,
-    options.requestId,
-  );
+  if (options.userId !== undefined) {
+    try {
+      const { createSupabaseServerClient } = await import("./auth");
+      const supabase = await createSupabaseServerClient();
+      const conversationId = crypto.randomUUID();
+      const { error } = await supabase.from("chat_messages").insert([
+        {
+          conversation_id: conversationId,
+          user_id: options.userId,
+          role: "user",
+          content: question,
+          citations: [],
+        },
+        {
+          conversation_id: conversationId,
+          user_id: options.userId,
+          role: "assistant",
+          content: result.answer,
+          citations: result.citations,
+        },
+      ]);
 
-  if (citations.length === 0) {
-    return { answer: REFUSAL_MESSAGE, citations: [] };
+      if (error !== null) {
+        throw error;
+      }
+    } catch (cause) {
+      logger.warn({
+        requestId: options.requestId,
+        operation: "persist_conversation",
+        status: "failed",
+        cause: cause instanceof Error ? cause.name : "UnknownError",
+      });
+    }
   }
 
-  return {
-    answer: generated.answer,
-    citations,
-  };
+  return result;
 }

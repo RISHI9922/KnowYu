@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { env } from "../../../../lib/env";
 import { AppError, toHttpStatus, toPublicError } from "../../../../lib/errors";
@@ -132,6 +133,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     }
 
+    const userIdHeader = request.headers.get("X-User-Id");
+    const userId = z.string().uuid().safeParse(userIdHeader);
+
+    if (!userId.success) {
+      throw new AppError("MISSING_FIELD", {
+        message: "X-User-Id header (valid UUID) is required.",
+      });
+    }
+
     const requestHash = hash(JSON.stringify(parsed.data)).toString("hex");
     const idempotencyKey = idempotencyResult.data;
     const existing = await getIdempotencyRecord(idempotencyKey);
@@ -158,7 +168,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    const result = await ingestCorpus(request.signal);
+    const result = await ingestCorpus(userId.data, request.signal);
     const body: IngestSuccessResponse = {
       data: result,
       error: null,

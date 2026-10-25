@@ -8,10 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "test:eval": "vitest run tests/eval/run-eval.ts",
     "test:watch": "vitest",
+    "latency:measure": "node scripts/measure-latency.mjs",
+    "latency:report": "node scripts/report-latency.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/ssr": "0.5.2",
     "@supabase/supabase-js": "2.117.2",
     "@upstash/ratelimit": "2.2.0",
     "@upstash/redis": "1.39.0",

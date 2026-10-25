@@ -63,7 +63,7 @@ export async function matchDocuments(
     const { data, error } = await supabaseService
       .rpc("match_documents", {
         query_embedding: [...queryEmbedding],
-        match_threshold: 0.7,
+        match_threshold: 0.65,
         match_count: 5,
       })
       .abortSignal(controller.signal);
@@ -155,6 +155,7 @@ export async function checkDatabaseHealth(
 export async function replaceDocumentChunks(
   source: string,
   chunks: ReadonlyArray<DocumentChunkInput>,
+  userId: string,
   signal?: AbortSignal,
 ): Promise<void> {
   const controller = new AbortController();
@@ -176,13 +177,14 @@ export async function replaceDocumentChunks(
     const { data, error } = await supabaseService.rpc(
       "replace_document_chunks",
       {
-        source_name: source,
-        document_chunks: chunks.map((chunk) => ({
+        p_source: source,
+        p_chunks: chunks.map((chunk) => ({
           content: chunk.content,
           embedding: [...chunk.embedding],
           page: chunk.page,
           chunk_index: chunk.chunkIndex,
         })),
+        p_user_id: userId,
       },
     ).abortSignal(controller.signal);
 
